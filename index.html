@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MIDDEN — a dig, not a settlement</title>
+<meta name="description" content="A buried village, a closed purse, and ground that will not hold. Restore what you can afford; everything you raise is paid for by something you pull apart." />
+<meta name="theme-color" content="#15130f" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2315130f'/%3E%3Crect y='8' width='32' height='7' fill='%238d6944'/%3E%3Crect y='15' width='32' height='7' fill='%235b6650'/%3E%3Crect y='22' width='32' height='6' fill='%2344505c'/%3E%3Crect x='11' y='10' width='10' height='9' fill='%23e0a35c'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ─────────────────────────── TITLE ─────────────────────────── -->
+  <section id="titleScreen" class="screen active">
+    <canvas id="titleCanvas" aria-hidden="true"></canvas>
+    <div class="title-inner">
+      <p class="eyebrow">An excavation</p>
+      <h1 class="wordmark">MIDDEN</h1>
+      <p class="tagline">The village is already built. You are only deciding what survives.</p>
+      <div class="title-actions">
+        <button class="btn btn-primary" id="btnBegin">Begin the dig</button>
+        <button class="btn" id="btnHowto">How to read the ground</button>
+        <button class="btn" id="btnSettingsTitle">Settings</button>
+      </div>
+      <div class="seedrow">
+        <label for="seedInput">Trench</label>
+        <input id="seedInput" type="text" spellcheck="false" autocomplete="off" />
+        <button class="btn btn-tiny" id="btnReseed" title="New trench">↻</button>
+      </div>
+      <p class="credit">Canvas 2D · procedural audio · no assets</p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── INTRO ─────────────────────────── -->
+  <section id="introScreen" class="screen">
+    <div class="intro-inner">
+      <div id="introLines"></div>
+      <button class="btn btn-ghost" id="btnSkipIntro">Take up the spade →</button>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── GAME ──────────────────────────── -->
+  <section id="gameScreen" class="screen">
+    <div class="stage">
+      <div class="canvas-wrap">
+        <canvas id="trench" width="880" height="648"></canvas>
+        <div id="toast" class="toast"></div>
+        <div id="floaters" class="floaters"></div>
+      </div>
+      <div class="toolbar" id="toolbar">
+        <button class="tool active" data-mode="clear">
+          <span class="tk">Q</span><span class="tn">Clear</span><span class="tc" id="costClear">1</span>
+        </button>
+        <button class="tool" data-mode="sound">
+          <span class="tk">W</span><span class="tn">Sounding</span><span class="tc">2</span>
+        </button>
+        <button class="tool" data-mode="prop">
+          <span class="tk">E</span><span class="tn">Prop</span><span class="tc">3</span>
+        </button>
+        <div class="toolbar-spacer"></div>
+        <button class="tool tool-plain" id="btnSettingsGame" title="Settings">⚙</button>
+        <button class="tool tool-plain" id="btnHowtoGame" title="How to read the ground">?</button>
+        <button class="tool tool-danger" id="btnEnd">Close the dig</button>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="readouts">
+        <div class="readout">
+          <span class="rl">Salvage</span>
+          <span class="rv" id="rvSalvage">30</span>
+        </div>
+        <div class="readout">
+          <span class="rl">Coherence</span>
+          <span class="rv" id="rvScore">0</span>
+        </div>
+      </div>
+
+      <div id="selCard" class="card">
+        <div class="card-empty">
+          <p><strong>Nothing selected.</strong></p>
+          <p class="muted">Clear soil from the surface downward. Masonry on the open face shows as a pale seam; a sounding returns silhouettes without names.</p>
+        </div>
+      </div>
+
+      <div class="log-head">Field notes</div>
+      <div id="log" class="log"></div>
+    </aside>
+  </section>
+
+  <!-- ─────────────────────────── END ───────────────────────────── -->
+  <section id="endScreen" class="screen">
+    <div class="end-inner">
+      <p class="eyebrow" id="endReason">The trench is closed</p>
+      <h2 id="endGrade">A creditable dig</h2>
+      <p class="end-line" id="endLine"></p>
+      <div class="end-score">
+        <div><span id="endTotal">0</span><label>Coherence</label></div>
+        <div><span id="endSaved">0</span><label>Standing</label></div>
+        <div><span id="endBroken">0</span><label>Broken up</label></div>
+        <div><span id="endLost">0</span><label>Fallen</label></div>
+      </div>
+      <div class="end-cols">
+        <div><h4>What stands</h4><ul id="listSaved"></ul></div>
+        <div><h4>What you took apart</h4><ul id="listBroken"></ul></div>
+        <div><h4>What came down</h4><ul id="listLost"></ul></div>
+      </div>
+      <p class="muted end-foot" id="endFoot"></p>
+      <div class="title-actions">
+        <button class="btn btn-primary" id="btnAgain">Another trench</button>
+        <button class="btn" id="btnSameSeed">Dig this one again</button>
+        <button class="btn btn-ghost" id="btnToTitle">Back to the field</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── MODALS ────────────────────────── -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-box">
+      <header><h3>Settings</h3><button class="x" data-close>×</button></header>
+      <div class="modal-body">
+        <h4>Sound</h4>
+        <label class="row"><span>Master</span><input type="range" id="volMaster" min="0" max="100" value="80"><em id="volMasterV">80</em></label>
+        <label class="row"><span>Effects</span><input type="range" id="volSfx" min="0" max="100" value="90"><em id="volSfxV">90</em></label>
+        <label class="row"><span>Ambience</span><input type="range" id="volAmb" min="0" max="100" value="55"><em id="volAmbV">55</em></label>
+        <label class="row check"><input type="checkbox" id="optMute"><span>Mute everything</span></label>
+
+        <h4>Picture</h4>
+        <label class="row check"><input type="checkbox" id="optLantern" checked><span>Lantern light follows the cursor</span></label>
+        <label class="row check"><input type="checkbox" id="optGrain" checked><span>Film grain</span></label>
+        <label class="row check"><input type="checkbox" id="optRain" checked><span>Weather</span></label>
+        <label class="row check"><input type="checkbox" id="optMotes" checked><span>Dust in the air</span></label>
+        <label class="row check"><input type="checkbox" id="optShake" checked><span>Camera shake on collapse</span></label>
+        <label class="row check"><input type="checkbox" id="optReduced"><span>Reduce motion</span></label>
+
+        <h4>Play</h4>
+        <label class="row check"><input type="checkbox" id="optGrid"><span>Show the cell grid</span></label>
+        <label class="row check"><input type="checkbox" id="optConfirm" checked><span>Confirm before breaking up a restored building</span></label>
+      </div>
+      <footer><button class="btn" data-close>Done</button></footer>
+    </div>
+  </div>
+
+  <div id="howtoModal" class="modal">
+    <div class="modal-box wide">
+      <header><h3>How to read the ground</h3><button class="x" data-close>×</button></header>
+      <div class="modal-body" id="howtoBody"></div>
+      <footer><button class="btn btn-primary" data-close>Understood</button></footer>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal">
+    <div class="modal-box narrow">
+      <header><h3>Break it up?</h3><button class="x" data-close>×</button></header>
+      <div class="modal-body"><p id="confirmText"></p></div>
+      <footer>
+        <button class="btn btn-ghost" data-close>Leave it standing</button>
+        <button class="btn btn-danger" id="confirmYes">Break it up</button>
+      </footer>
+    </div>
+  </div>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
